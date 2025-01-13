@@ -1,0 +1,124 @@
+2025-01-12 18:14:57,760 - INFO - Creating markerData table
+2025-01-12 18:14:57,762 - INFO - marketData table created successfully
+2025-01-12 18:14:57,762 - INFO - Creating incomeData table
+2025-01-12 18:14:57,762 - INFO - incomeData table created successfully
+2025-01-12 18:14:57,762 - INFO - Starting data download for ticker: AAPL
+2025-01-12 18:14:59,413 - INFO - Data download successful for ticker: AAPL
+2025-01-12 18:14:59,417 - INFO - Data processing complete for ticker: AAPL
+2025-01-12 18:14:59,418 - INFO - Starting income data download for ticker: AAPL
+2025-01-12 18:14:59,868 - INFO - Income Data download successful for ticker: AAPL
+2025-01-12 18:14:59,868 - INFO - Data processing complete for ticker: AAPL
+2025-01-12 18:14:59,869 - INFO - Starting data insertion into the database
+2025-01-12 18:14:59,885 - INFO - Data insertion successful
+2025-01-12 18:15:00,886 - INFO - Starting data insertion into the database
+2025-01-12 18:15:00,893 - INFO - Data insertion successful
+2025-01-12 18:15:01,894 - INFO - Starting data download for ticker: MSFT
+2025-01-12 18:15:02,148 - INFO - Data download successful for ticker: MSFT
+2025-01-12 18:15:02,151 - INFO - Data processing complete for ticker: MSFT
+2025-01-12 18:15:02,152 - INFO - Starting income data download for ticker: MSFT
+2025-01-12 18:15:02,756 - INFO - Income Data download successful for ticker: MSFT
+2025-01-12 18:15:02,757 - INFO - Data processing complete for ticker: MSFT
+2025-01-12 18:15:02,757 - INFO - Starting data insertion into the database
+2025-01-12 18:15:02,772 - INFO - Data insertion successful
+2025-01-12 18:15:03,773 - INFO - Starting data insertion into the database
+2025-01-12 18:15:03,779 - INFO - Data insertion successful
+2025-01-12 18:15:04,781 - INFO - Starting data download for ticker: GOOGL
+2025-01-12 18:15:04,986 - INFO - Data download successful for ticker: GOOGL
+2025-01-12 18:15:04,988 - INFO - Data processing complete for ticker: GOOGL
+2025-01-12 18:15:04,989 - INFO - Starting income data download for ticker: GOOGL
+2025-01-12 18:15:05,561 - INFO - Income Data download successful for ticker: GOOGL
+2025-01-12 18:15:05,562 - INFO - Data processing complete for ticker: GOOGL
+2025-01-12 18:15:05,562 - INFO - Starting data insertion into the database
+2025-01-12 18:15:05,574 - INFO - Data insertion successful
+2025-01-12 18:15:06,576 - INFO - Starting data insertion into the database
+2025-01-12 18:15:06,583 - INFO - Data insertion successful
+2025-01-12 18:15:07,583 - INFO - Starting data download for ticker: AMZN
+2025-01-12 18:15:07,773 - INFO - Data download successful for ticker: AMZN
+2025-01-12 18:15:07,776 - INFO - Data processing complete for ticker: AMZN
+2025-01-12 18:15:07,776 - INFO - Starting income data download for ticker: AMZN
+2025-01-12 18:15:08,206 - INFO - Income Data download successful for ticker: AMZN
+2025-01-12 18:15:08,206 - INFO - Data processing complete for ticker: AMZN
+2025-01-12 18:15:08,207 - INFO - Starting data insertion into the database
+2025-01-12 18:15:08,223 - INFO - Data insertion successful
+2025-01-12 18:15:09,224 - INFO - Starting data insertion into the database
+2025-01-12 18:15:09,231 - INFO - Data insertion successful
+2025-01-12 18:15:10,231 - INFO - Starting data download for ticker: META
+2025-01-12 18:15:10,359 - INFO - Data download successful for ticker: META
+2025-01-12 18:15:10,360 - INFO - Data processing complete for ticker: META
+2025-01-12 18:15:10,361 - INFO - Starting income data download for ticker: META
+2025-01-12 18:15:10,536 - INFO - Income Data download successful for ticker: META
+2025-01-12 18:15:10,537 - INFO - Data processing complete for ticker: META
+2025-01-12 18:15:10,538 - INFO - Starting data insertion into the database
+2025-01-12 18:15:10,546 - INFO - Data insertion successful
+2025-01-12 18:15:11,548 - INFO - Starting data insertion into the database
+2025-01-12 18:15:11,554 - INFO - Data insertion successful
+2025-01-12 18:15:12,555 - INFO - Starting data download for ticker: TSLA
+2025-01-12 18:15:12,694 - INFO - Data download successful for ticker: TSLA
+2025-01-12 18:15:12,696 - INFO - Data processing complete for ticker: TSLA
+2025-01-12 18:15:12,696 - INFO - Starting income data download for ticker: TSLA
+2025-01-12 18:15:13,265 - INFO - Income Data download successful for ticker: TSLA
+2025-01-12 18:15:13,267 - INFO - Data processing complete for ticker: TSLA
+2025-01-12 18:15:13,267 - INFO - Starting data insertion into the database
+2025-01-12 18:15:13,276 - INFO - Data insertion successful
+2025-01-12 18:15:14,277 - INFO - Starting data insertion into the database
+2025-01-12 18:15:14,284 - INFO - Data insertion successful
+2025-01-12 18:15:15,284 - INFO - Starting data download for ticker: NVDA
+2025-01-12 18:15:15,503 - INFO - Data download successful for ticker: NVDA
+2025-01-12 18:15:15,505 - INFO - Data processing complete for ticker: NVDA
+2025-01-12 18:15:15,506 - INFO - Starting income data download for ticker: NVDA
+2025-01-12 18:15:15,970 - INFO - Income Data download successful for ticker: NVDA
+2025-01-12 18:15:15,970 - INFO - Data processing complete for ticker: NVDA
+2025-01-12 18:15:15,971 - INFO - Starting data insertion into the database
+2025-01-12 18:15:15,984 - INFO - Data insertion successful
+2025-01-12 18:15:16,984 - INFO - Starting data insertion into the database
+2025-01-12 18:15:16,991 - INFO - Data insertion successful
+2025-01-12 18:15:17,992 - INFO - Starting data download for ticker: SNOW
+2025-01-12 18:15:18,087 - INFO - Data download successful for ticker: SNOW
+2025-01-12 18:15:18,088 - INFO - Data processing complete for ticker: SNOW
+2025-01-12 18:15:18,088 - INFO - Starting income data download for ticker: SNOW
+2025-01-12 18:15:18,345 - INFO - Income Data download successful for ticker: SNOW
+2025-01-12 18:15:18,346 - INFO - Data processing complete for ticker: SNOW
+2025-01-12 18:15:18,347 - INFO - Starting data insertion into the database
+2025-01-12 18:15:18,354 - INFO - Data insertion successful
+2025-01-12 18:15:19,355 - INFO - Starting data insertion into the database
+2025-01-12 18:15:19,361 - INFO - Data insertion successful
+2025-01-12 18:15:20,362 - INFO - Starting data download for ticker: PLTR
+2025-01-12 18:15:20,455 - INFO - Data download successful for ticker: PLTR
+2025-01-12 18:15:20,455 - INFO - Data processing complete for ticker: PLTR
+2025-01-12 18:15:20,457 - INFO - Starting income data download for ticker: PLTR
+2025-01-12 18:15:20,713 - INFO - Income Data download successful for ticker: PLTR
+2025-01-12 18:15:20,714 - INFO - Data processing complete for ticker: PLTR
+2025-01-12 18:15:20,714 - INFO - Starting data insertion into the database
+2025-01-12 18:15:20,722 - INFO - Data insertion successful
+2025-01-12 18:15:21,723 - INFO - Starting data insertion into the database
+2025-01-12 18:15:21,729 - INFO - Data insertion successful
+2025-01-12 18:15:22,730 - INFO - Starting data download for ticker: ARM
+2025-01-12 18:15:22,793 - INFO - Data download successful for ticker: ARM
+2025-01-12 18:15:22,794 - INFO - Data processing complete for ticker: ARM
+2025-01-12 18:15:22,794 - INFO - Starting income data download for ticker: ARM
+2025-01-12 18:15:23,044 - INFO - Income Data download successful for ticker: ARM
+2025-01-12 18:15:23,045 - INFO - Data processing complete for ticker: ARM
+2025-01-12 18:15:23,045 - INFO - Starting data insertion into the database
+2025-01-12 18:15:23,051 - INFO - Data insertion successful
+2025-01-12 18:15:24,053 - INFO - Starting data insertion into the database
+2025-01-12 18:15:24,058 - INFO - Data insertion successful
+2025-01-12 18:15:25,060 - INFO - Starting data download for ticker: AMD
+2025-01-12 18:15:25,260 - INFO - Data download successful for ticker: AMD
+2025-01-12 18:15:25,265 - INFO - Data processing complete for ticker: AMD
+2025-01-12 18:15:25,266 - INFO - Starting income data download for ticker: AMD
+2025-01-12 18:15:25,695 - INFO - Income Data download successful for ticker: AMD
+2025-01-12 18:15:25,696 - INFO - Data processing complete for ticker: AMD
+2025-01-12 18:15:25,696 - INFO - Starting data insertion into the database
+2025-01-12 18:15:25,713 - INFO - Data insertion successful
+2025-01-12 18:15:26,714 - INFO - Starting data insertion into the database
+2025-01-12 18:15:26,721 - INFO - Data insertion successful
+2025-01-12 18:15:27,722 - INFO - Starting data download for ticker: QCOM
+2025-01-12 18:15:27,983 - INFO - Data download successful for ticker: QCOM
+2025-01-12 18:15:27,986 - INFO - Data processing complete for ticker: QCOM
+2025-01-12 18:15:27,986 - INFO - Starting income data download for ticker: QCOM
+2025-01-12 18:15:28,582 - INFO - Income Data download successful for ticker: QCOM
+2025-01-12 18:15:28,584 - INFO - Data processing complete for ticker: QCOM
+2025-01-12 18:15:28,584 - INFO - Starting data insertion into the database
+2025-01-12 18:15:28,598 - INFO - Data insertion successful
+2025-01-12 18:15:29,599 - INFO - Starting data insertion into the database
+2025-01-12 18:15:29,606 - INFO - Data insertion successful

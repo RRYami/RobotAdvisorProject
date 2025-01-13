@@ -1,0 +1,1 @@
+select * from incomeData where symbol = 'ARM'

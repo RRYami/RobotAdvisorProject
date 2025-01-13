@@ -1,3 +1,5 @@
 .venv/
 keys/
 data/
+.vscode/
+__pycache__/
