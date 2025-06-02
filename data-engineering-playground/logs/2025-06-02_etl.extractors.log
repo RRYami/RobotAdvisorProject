@@ -1,0 +1,48 @@
+2025-06-02 21:24:13,786 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: AAPL
+2025-06-02 21:24:14,249 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol AAPL
+2025-06-02 21:28:33,050 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: AAPL
+2025-06-02 21:28:33,657 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol AAPL
+2025-06-02 21:29:10,500 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: AAPL
+2025-06-02 21:29:11,102 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol AAPL
+2025-06-02 21:31:02,181 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: AAPL
+2025-06-02 21:31:02,643 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol AAPL
+2025-06-02 21:31:17,687 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: AAPL
+2025-06-02 21:31:18,297 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol AAPL
+2025-06-02 21:33:50,111 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: AAPL
+2025-06-02 21:33:50,555 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol AAPL
+2025-06-02 21:38:35,929 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: NVDA
+2025-06-02 21:38:36,375 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol NVDA
+2025-06-02 21:38:36,375 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: NVDA
+2025-06-02 21:38:36,967 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol NVDA
+2025-06-02 21:38:36,968 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: NVDA
+2025-06-02 21:38:37,569 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol NVDA
+2025-06-02 21:38:37,570 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: NVDA
+2025-06-02 21:38:37,827 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol NVDA
+2025-06-02 21:38:37,828 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: NVDA
+2025-06-02 21:38:38,162 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol NVDA
+2025-06-02 21:38:38,162 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: NVDA
+2025-06-02 21:38:38,496 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol NVDA
+2025-06-02 21:38:38,497 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: GOOGL
+2025-06-02 21:38:38,929 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol GOOGL
+2025-06-02 21:38:38,929 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: GOOGL
+2025-06-02 21:38:39,535 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol GOOGL
+2025-06-02 21:38:39,536 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: GOOGL
+2025-06-02 21:38:40,143 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol GOOGL
+2025-06-02 21:38:40,143 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: GOOGL
+2025-06-02 21:38:40,748 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol GOOGL
+2025-06-02 21:38:40,748 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: GOOGL
+2025-06-02 21:38:41,096 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol GOOGL
+2025-06-02 21:38:41,096 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: GOOGL
+2025-06-02 21:38:41,296 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol GOOGL
+2025-06-02 21:38:41,296 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: MSFT
+2025-06-02 21:38:41,734 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol MSFT
+2025-06-02 21:38:41,734 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: MSFT
+2025-06-02 21:38:42,160 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol MSFT
+2025-06-02 21:38:42,160 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: MSFT
+2025-06-02 21:38:42,773 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol MSFT
+2025-06-02 21:38:42,773 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: MSFT
+2025-06-02 21:38:43,365 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol MSFT
+2025-06-02 21:38:43,365 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: MSFT
+2025-06-02 21:38:43,786 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol MSFT
+2025-06-02 21:38:43,787 - etl.extractors - INFO - Extracting data from Alpha Vantage for symbol: MSFT
+2025-06-02 21:38:44,211 - etl.extractors - INFO - Successfully extracted data from Alpha Vantage for symbol MSFT

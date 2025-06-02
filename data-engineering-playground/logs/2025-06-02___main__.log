@@ -1,0 +1,30 @@
+2025-06-02 21:24:14,249 - __main__ - WARNING - No data extracted.
+2025-06-02 21:24:14,249 - __main__ - INFO - ETL process completed successfully.
+2025-06-02 21:28:33,657 - __main__ - ERROR - An error occurred: 'dict' object has no attribute 'empty'
+2025-06-02 21:28:33,657 - __main__ - INFO - ETL process completed successfully.
+2025-06-02 21:29:11,102 - __main__ - INFO - ETL process completed successfully.
+2025-06-02 21:31:02,644 - __main__ - INFO - ETL process completed successfully.
+2025-06-02 21:31:18,298 - __main__ - INFO - ETL process completed successfully.
+2025-06-02 21:33:50,555 - __main__ - INFO - ETL process completed successfully.
+2025-06-02 21:38:35,929 - __main__ - INFO - Extracting earnings data for symbol: NVDA
+2025-06-02 21:38:35,929 - __main__ - INFO - Extracting EARNINGS data for NVDA
+2025-06-02 21:38:36,375 - __main__ - INFO - Extracting CASH_FLOW data for NVDA
+2025-06-02 21:38:36,967 - __main__ - INFO - Extracting BALANCE_SHEET data for NVDA
+2025-06-02 21:38:37,569 - __main__ - INFO - Extracting INCOME_STATEMENT data for NVDA
+2025-06-02 21:38:37,828 - __main__ - INFO - Extracting SPLITS data for NVDA
+2025-06-02 21:38:38,162 - __main__ - INFO - Extracting DIVIDENDS data for NVDA
+2025-06-02 21:38:38,497 - __main__ - INFO - Extracting earnings data for symbol: GOOGL
+2025-06-02 21:38:38,497 - __main__ - INFO - Extracting EARNINGS data for GOOGL
+2025-06-02 21:38:38,929 - __main__ - INFO - Extracting CASH_FLOW data for GOOGL
+2025-06-02 21:38:39,536 - __main__ - INFO - Extracting BALANCE_SHEET data for GOOGL
+2025-06-02 21:38:40,143 - __main__ - INFO - Extracting INCOME_STATEMENT data for GOOGL
+2025-06-02 21:38:40,748 - __main__ - INFO - Extracting SPLITS data for GOOGL
+2025-06-02 21:38:41,096 - __main__ - INFO - Extracting DIVIDENDS data for GOOGL
+2025-06-02 21:38:41,296 - __main__ - INFO - Extracting earnings data for symbol: MSFT
+2025-06-02 21:38:41,296 - __main__ - INFO - Extracting EARNINGS data for MSFT
+2025-06-02 21:38:41,734 - __main__ - INFO - Extracting CASH_FLOW data for MSFT
+2025-06-02 21:38:42,160 - __main__ - INFO - Extracting BALANCE_SHEET data for MSFT
+2025-06-02 21:38:42,773 - __main__ - INFO - Extracting INCOME_STATEMENT data for MSFT
+2025-06-02 21:38:43,365 - __main__ - INFO - Extracting SPLITS data for MSFT
+2025-06-02 21:38:43,786 - __main__ - INFO - Extracting DIVIDENDS data for MSFT
+2025-06-02 21:38:44,212 - __main__ - INFO - ETL process completed successfully.
