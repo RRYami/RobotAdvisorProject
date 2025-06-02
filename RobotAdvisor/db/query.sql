@@ -1,1 +1,3 @@
-select * from incomeData where symbol = 'ARM'
+select * from marketData where Symbol = 'AAPL';
+
+DELETE from marketData;
