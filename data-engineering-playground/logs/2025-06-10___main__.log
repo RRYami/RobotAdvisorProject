@@ -1,0 +1,22 @@
+2025-06-10 20:49:48,531 - __main__ - INFO - Extracting earnings data for symbol: KO
+2025-06-10 20:49:48,531 - __main__ - INFO - Extracting EARNINGS data for KO
+2025-06-10 20:49:49,061 - __main__ - INFO - Extracting CASH_FLOW data for KO
+2025-06-10 20:49:49,489 - __main__ - INFO - Extracting BALANCE_SHEET data for KO
+2025-06-10 20:49:50,096 - __main__ - INFO - Extracting INCOME_STATEMENT data for KO
+2025-06-10 20:49:50,526 - __main__ - INFO - Extracting SPLITS data for KO
+2025-06-10 20:49:50,866 - __main__ - INFO - Extracting DIVIDENDS data for KO
+2025-06-10 20:49:51,125 - __main__ - INFO - Extracting earnings data for symbol: PLTR
+2025-06-10 20:49:51,125 - __main__ - INFO - Extracting EARNINGS data for PLTR
+2025-06-10 20:49:51,300 - __main__ - INFO - Extracting CASH_FLOW data for PLTR
+2025-06-10 20:49:51,641 - __main__ - INFO - Extracting BALANCE_SHEET data for PLTR
+2025-06-10 20:49:52,146 - __main__ - INFO - Extracting INCOME_STATEMENT data for PLTR
+2025-06-10 20:49:52,608 - __main__ - INFO - Extracting SPLITS data for PLTR
+2025-06-10 20:49:52,959 - __main__ - INFO - Extracting DIVIDENDS data for PLTR
+2025-06-10 20:49:53,298 - __main__ - INFO - Extracting earnings data for symbol: OKLO
+2025-06-10 20:49:53,298 - __main__ - INFO - Extracting EARNINGS data for OKLO
+2025-06-10 20:49:53,464 - __main__ - INFO - Extracting CASH_FLOW data for OKLO
+2025-06-10 20:49:53,897 - __main__ - INFO - Extracting BALANCE_SHEET data for OKLO
+2025-06-10 20:49:54,330 - __main__ - INFO - Extracting INCOME_STATEMENT data for OKLO
+2025-06-10 20:49:54,748 - __main__ - INFO - Extracting SPLITS data for OKLO
+2025-06-10 20:49:55,090 - __main__ - INFO - Extracting DIVIDENDS data for OKLO
+2025-06-10 20:49:55,266 - __main__ - INFO - ETL process completed successfully.

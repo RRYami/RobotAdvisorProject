@@ -5,6 +5,7 @@ from typing import Dict, Any, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
+
 from src.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -31,11 +32,11 @@ class DatabaseConnection:
         else:
             # Default to environment variables
             self.config = {
-                'host': os.environ.get('DB_HOST', 'localhost'),
-                'port': int(os.environ.get('DB_PORT', 5432)),
-                'database': os.environ.get('DB_NAME', 'postgres'),
-                'user': os.environ.get('DB_USER', 'postgres'),
-                'password': os.environ.get('DB_PASSWORD', 'postgres'),
+                'host': os.environ.get('POSTGRES_HOST', 'postgres'),
+                'port': int(os.environ.get('POSTGRES_PORT', 5432)),
+                'database': os.environ.get('POSTGRES_DB', 'test_db'),
+                'user': os.environ.get('POSTGRES_USER', 'postgres'),
+                'password': os.environ.get('POSTGRES_PASSWORD', 'postgres'),
             }
 
     def _load_config(self, config_path: str) -> Dict[str, Any]:
@@ -99,17 +100,16 @@ class DatabaseConnection:
             logger.error("Database connection is not established. Call connect() first.")
             raise Exception("Database connection is not established. Call connect() first.")
         try:
-            self.cursor.execute(query, params)
-
-            # If query starts with SELECT, fetch results
-            if query.strip().upper().startswith("SELECT"):
-                result = self.cursor.fetchall()
-                return result
-            else:
-                self.conn.commit()
-                return []
+            # self.cursor.execute(query, params)
+            with self.conn as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(query, params)
+                    conn.commit()
+                    results = []
+            logger.info(f"Query executed successfully: {query}")
+            return results
         except Exception as e:
-            self.conn.rollback()
+            conn.rollback()
             logger.error(f"Error executing query: {e}")
             raise
 
@@ -124,4 +124,5 @@ class DatabaseConnection:
         """
         Context manager exit
         """
+
         self.close()

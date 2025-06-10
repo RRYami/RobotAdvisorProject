@@ -2,7 +2,7 @@
 Data loaders for loading processed data into the database
 """
 import pandas as pd
-from typing import Optional, List, Dict, Any, Literal
+from typing import Literal
 from sqlalchemy import create_engine
 from src.database.connection import DatabaseConnection
 from src.utils.logger import setup_logger

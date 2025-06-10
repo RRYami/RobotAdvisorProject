@@ -9,35 +9,26 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
     ports:
-      - "5432:5432" # Persist data to the postgres_data volume
+      - "5432:5432"
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 5s
-      timeout: 5s
+      interval: 20s
+      timeout: 10s
       retries: 5
 
-  # Uncomment this section when you're ready to add Airflow
-  # airflow:
-  #   build:
-  #     context: .
-  #     dockerfile: ./docker/airflow.Dockerfile
-  #   container_name: data-engineering-airflow
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   environment:
-  #     - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-  #     - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@postgres/airflow
-  #     - AIRFLOW__CORE__LOAD_EXAMPLES=False
-  #   volumes:
-  #     - ./dags:/opt/airflow/dags
-  #     - ./logs:/opt/airflow/logs
-  #     - ./plugins:/opt/airflow/plugins
-  #     - ./src:/opt/airflow/src
-  #   ports:
-  #     - "8080:8080"
-  #   command: bash -c "airflow db init && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com && airflow webserver & airflow scheduler"
-  # pgAdmin for database management
+  app:
+    build:
+      context: .. # Change to parent directory since dockerfile copies from root
+      dockerfile: src/dockerfile
+    depends_on:
+      - postgres
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=postgres # Match the postgres database name
+      - POSTGRES_USER=postgres # Match the postgres user
+      - POSTGRES_PASSWORD=postgres # Match the postgres password
+
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: data-engineering-pgadmin
@@ -49,6 +40,3 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-# PostgreSQL data persistence
-volumes:
-  postgres_data:

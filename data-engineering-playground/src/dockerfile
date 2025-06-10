@@ -1,0 +1,30 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# Install system dependencies needed for Python packages
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libpq-dev \
+    libffi-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better Docker layer caching
+COPY requirements.txt .
+
+# Install Python dependencies with more verbose output
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy the entire project structure
+COPY . .
+
+# Set PYTHONPATH so imports work correctly
+ENV PYTHONPATH=/app
+
+# Create necessary directories
+RUN mkdir -p /app/data/raw /app/logs
+
+CMD ["python", "src/main.py"]
