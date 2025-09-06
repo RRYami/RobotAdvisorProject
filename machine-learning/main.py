@@ -1,5 +1,5 @@
 def main():
-    print("Hello from pricinglib!")
+    print("Hello from machine-learning!")
 
 
 if __name__ == "__main__":

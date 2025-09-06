@@ -1,0 +1,33 @@
+version: "3"
+services:
+  questdb:
+    image: questdb/questdb:latest
+    container_name: questdb
+    ports:
+      - "9000:9000" # REST API and Web Console
+      - "8812:8812" # PostgreSQL interface
+      - "9009:9009" # InfluxDB Line Protocol
+    networks:
+      - questdb-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yield_app
+    depends_on:
+      - questdb # Ensure QuestDB starts first
+    ports:
+      - "5000:5000" # Optional: Expose app port if needed
+    environment:
+      - QUESTDB_HOST=questdb # Use the service name as hostname
+      - QUESTDB_HTTP_PORT=9000 # HTTP port for ILP
+      - QUESTDB_PORT=8812 # PostgreSQL port
+      - QUESTDB_USER=admin
+      - QUESTDB_PASSWORD=questdb
+    networks:
+      - questdb-network
+
+networks:
+  questdb-network:
+    driver: bridge

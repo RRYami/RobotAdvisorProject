@@ -1,0 +1,26 @@
+# Base image
+FROM python:3.13-slim-bookworm
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Set working directory
+WORKDIR /app
+
+RUN uv venv /opt/venv
+# Use the virtual environment automatically
+ENV VIRTUAL_ENV=/opt/venv
+# Place entry points in the environment at the front of the path
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements file
+COPY pyproject.toml .
+
+# Install dependencies using uv
+RUN uv pip install -r pyproject.toml
+
+# Copy the rest of the application code
+COPY . .
+
+# Explicitly override any default ENTRYPOINT from the base image
+ENTRYPOINT []
+
+CMD ["python", "main.py"]
