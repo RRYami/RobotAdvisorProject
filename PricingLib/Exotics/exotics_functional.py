@@ -62,7 +62,7 @@ def simulate_paths(config: SimulationConfig, rng: np.random.Generator | None = N
     if isinstance(config, SingleSimulationConfig):
         return simulate_geometric_brownian_motion(config=config, rng=rng)
     elif isinstance(config, MultiSimulationConfig):
-        return simulate_multi_geometric_brownian_motion(config=config, rng=rng)
+        return simulate_multi_geometric_brownian_motion_robust(config=config, rng=rng)
     else:
         raise ValueError("Unsupported config type for path simulation.")
 
@@ -302,7 +302,7 @@ def calculate_reverse_barrier_convertible_payoff(rbc: ReverseBarrierConvertibleC
         return discounted_payoff
 
 
-def calculate_multi_barrier_convertible_payoff(mbc: MultiBarrierConvertibleCertificateParams, paths: np.ndarray, time_grid: np.ndarray, continuous: bool):
+def calculate_multi_barrier_convertible_payoff(mbc: MultiBarrierConvertibleCertificateParams, paths: np.ndarray, continuous: bool):
     """
     Vectorized payoff for a Multi-Barrier Convertible Certificate.
     Scenarios:
@@ -312,14 +312,14 @@ def calculate_multi_barrier_convertible_payoff(mbc: MultiBarrierConvertibleCerti
     Returns: discounted payoff per simulation (np.ndarray shape (n_sims,))
     """
     n_sims, n_steps, _ = paths.shape
-    nb_simulations = paths.shape[0]
     maturity_time = calculate_maturity(mbc.valuation_date, mbc.maturity_date)
-    payoff = np.zeros(nb_simulations)
+    payoff = np.zeros(n_sims)
     barrier_values = [rate * init for rate, init in zip(mbc.barrier_rates, mbc.initial_index_values)]
     strike_values = [rate * init for rate, init in zip(mbc.strike_rates, mbc.initial_index_values)]
     observation_dates_days = [
         (date - mbc.valuation_date).days for date in mbc.observation_dates
     ]
+    time_grid = np.linspace(0, maturity_time, int(n_steps/maturity_time) + 1)
 
     if not continuous:
         # --- Select observation indices ---
@@ -355,7 +355,7 @@ def calculate_multi_barrier_convertible_payoff(mbc: MultiBarrierConvertibleCerti
         discounted_payoff = payoff * np.exp(-mbc.risk_free_rate * maturity_time)
         return discounted_payoff
     elif continuous:
-        barrier_breached_per_sim = np.zeros((nb_simulations, len(barrier_values)), dtype=bool)
+        barrier_breached_per_sim = np.zeros((n_sims, len(barrier_values)), dtype=bool)
         barrier_breached_per_sim = np.any(paths < np.array(barrier_values), axis=1)
         barrier_breached = np.any(barrier_breached_per_sim, axis=1)
         # for u in range(len(rbc.barriers)):
@@ -477,13 +477,10 @@ if __name__ == "__main__":
             [0.57, 0.87, 0.81, 1.0]]),
         maturity=calculate_maturity(mbc_params.valuation_date, mbc_params.maturity_date),
         nb_simulations=10000,
-        time_step_per_year=252
     )
     mbc_paths = simulate_paths(mbc_sim_config, rng=None)
-    time_grid = np.linspace(0, mbc_sim_config.maturity, int(
-        mbc_sim_config.maturity * mbc_sim_config.time_step_per_year) + 1)
     mbc_discounted_payoffs = calculate_multi_barrier_convertible_payoff(
-        mbc_params, mbc_paths, time_grid, continuous=False)
+        mbc_params, mbc_paths, continuous=False)
     print("\n")
     print("-----------------TEST Multi Barrier Certificate-----------------")
     print("-----------------------------------------------------------------")
