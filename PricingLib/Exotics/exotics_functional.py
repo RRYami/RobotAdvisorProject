@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import datetime as dt
 from dataclasses import dataclass
 from typing import Callable
-from Exotics.monte_carlo import SingleSimulationConfig, simulate_geometric_brownian_motion, MultiSimulationConfig, simulate_multi_geometric_brownian_motion, simulate_multi_geometric_brownian_motion_robust
+from monte_carlo import SingleSimulationConfig, simulate_geometric_brownian_motion, MultiSimulationConfig, simulate_multi_geometric_brownian_motion, simulate_multi_geometric_brownian_motion_robust
 
 plt.style.use(
     "https://github.com/dhaitz/matplotlib-stylesheets/raw/master/pitayasmoothie-dark.mplstyle"
