@@ -98,7 +98,7 @@ class HypersphereDecomposition:
 
 
 @dataclass(frozen=True)
-class SimulationConfig:
+class SingleSimulationConfig:
     initial_index_value: float = 100.0
     mu: float = 0.0
     volatility: float = 0.2
@@ -109,7 +109,7 @@ class SimulationConfig:
 
 @dataclass
 class MultiSimulationConfig:
-    initial_index_value: np.ndarray
+    initial_index_values: np.ndarray
     mu: np.ndarray
     volatility: np.ndarray
     correlation_matrix: np.ndarray
@@ -118,14 +118,14 @@ class MultiSimulationConfig:
     time_step_per_year: float = TIME_STEPS_PER_YEAR
 
     def __post_init__(self):
-        self.initial_index_value = np.asarray(self.initial_index_value)
+        self.initial_index_values = np.asarray(self.initial_index_values)
         self.mu = np.asarray(self.mu)
         self.volatility = np.asarray(self.volatility)
         self.correlation_matrix = np.asarray(self.correlation_matrix)
 
 
 # Single-asset Geometric Brownian Motion simulation
-def simulate_geometric_brownian_motion(config: SimulationConfig, rng: np.random.Generator | None = None) -> np.ndarray:
+def simulate_geometric_brownian_motion(config: SingleSimulationConfig, rng: np.random.Generator | None = None) -> np.ndarray:
     if rng is None:
         rng = np.random.default_rng()
     dt = 1 / config.time_step_per_year
@@ -142,19 +142,34 @@ def simulate_geometric_brownian_motion(config: SimulationConfig, rng: np.random.
 
 
 # Multi-asset Geometric Brownian Motion simulation
-def simulate_multi_geometric_brownian_motion(self, config: MultiSimulationConfig, rng: np.random.Generator | None = None) -> np.ndarray:
+def simulate_multi_geometric_brownian_motion(config: MultiSimulationConfig, rng: np.random.Generator | None = None) -> np.ndarray:
     if rng is None:
         rng = np.random.default_rng()
-    dt = 1 / config.time_step_per_year
-    time_steps = int(config.maturity * config.time_step_per_year)
-    paths = np.zeros((config.nb_simulations, time_steps + 1))
-    paths[:, 0] = config.initial_index_value
-    z = rng.standard_normal((time_steps, config.nb_simulations))
-    drift = (config.mu - 0.5 * config.volatility ** 2) * dt
-    diffusion = config.volatility * np.sqrt(dt) * z
-    log_returns = drift + diffusion
-    cum_log_returns = np.cumsum(log_returns, axis=0)
-    paths[:, 1:] = config.initial_index_value * np.exp(cum_log_returns.T)
+    dt = 1 / 365.25
+    time_steps = int(365.25 * config.maturity)
+    num_underlyings = len(config.initial_index_values)
+    # Check for semi-positive definiteness (correlation matrix)
+    if not HypersphereDecomposition.is_positive_definite(config.correlation_matrix):
+        try:
+            config.correlation_matrix = HypersphereDecomposition(config.correlation_matrix).optimization()
+        except Exception as e:
+            raise ValueError("Error in the Decomposition") from e
+    # Cholesky decomposition of the correlation matrix
+    L = np.linalg.cholesky(config.correlation_matrix)
+    # Initialize paths
+    paths = np.zeros((config.nb_simulations, time_steps + 1, num_underlyings))
+    paths[:, 0, :] = config.initial_index_values
+
+    for t in range(1, time_steps + 1):
+        # Generate correlated random shocks
+        z = rng.standard_normal((config.nb_simulations, num_underlyings))
+        correlated_z = z @ L.T
+
+        for u in range(num_underlyings):
+            drift = (config.mu[u] - 0.5 * config.volatility[u] ** 2) * dt
+            diffusion = config.volatility[u] * np.sqrt(dt) * correlated_z[:, u]
+            paths[:, t, u] = paths[:, t - 1, u] * np.exp(drift + diffusion)
+
     return paths
 
 
@@ -170,11 +185,11 @@ def simulate_multi_geometric_brownian_motion_robust(
     rng = rng or np.random.default_rng()
     dt = 1.0 / 365.25
     time_steps = int(365.25 * config.maturity)
-    n_assets = int(len(config.initial_index_value))
+    n_assets = int(len(config.initial_index_values))
     N = int(config.nb_simulations)
 
     # Convert market arrays
-    S0 = np.asarray(config.initial_index_value, dtype=float).reshape((n_assets,))
+    S0 = np.asarray(config.initial_index_values, dtype=float).reshape((n_assets,))
     vol = np.asarray(config.volatility, dtype=float).reshape((n_assets,))
     mu = np.asarray(config.mu, dtype=float).reshape((n_assets,))
 
