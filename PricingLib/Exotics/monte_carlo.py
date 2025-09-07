@@ -99,10 +99,10 @@ class HypersphereDecomposition:
 
 @dataclass(frozen=True)
 class SingleSimulationConfig:
-    initial_index_value: float = 100.0
-    mu: float = 0.0
-    volatility: float = 0.2
-    maturity: float = 1.0
+    initial_index_value: float
+    mu: float
+    volatility: float
+    maturity: float
     nb_simulations: int = NB_SIMULATIONS
     time_step_per_year: float = TIME_STEPS_PER_YEAR
 
