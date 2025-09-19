@@ -124,243 +124,6 @@ class MultiSimulationConfig:
         self.correlation_matrix = np.asarray(self.correlation_matrix)
 
 
-# Single-asset Geometric Brownian Motion simulation
-def simulate_geometric_brownian_motion(config: SingleSimulationConfig, rng: np.random.Generator | None = None) -> np.ndarray:
-    if rng is None:
-        rng = np.random.default_rng()
-    dt = 1 / config.time_step_per_year
-    time_steps = int(config.maturity * config.time_step_per_year)
-    paths = np.zeros((config.nb_simulations, time_steps + 1))
-    paths[:, 0] = config.initial_index_value
-    z = rng.standard_normal((time_steps, config.nb_simulations))
-    drift = (config.mu - 0.5 * config.volatility ** 2) * dt
-    diffusion = config.volatility * np.sqrt(dt) * z
-    log_returns = drift + diffusion
-    cum_log_returns = np.cumsum(log_returns, axis=0)
-    paths[:, 1:] = config.initial_index_value * np.exp(cum_log_returns.T)
-    return paths
-
-
-# Multi-asset Geometric Brownian Motion simulation
-def simulate_multi_geometric_brownian_motion(config: MultiSimulationConfig, rng: np.random.Generator | None = None) -> np.ndarray:
-    if rng is None:
-        rng = np.random.default_rng()
-    dt = 1 / config.time_step_per_year
-    time_steps = int(config.time_step_per_year * config.maturity)
-    num_underlyings = len(config.initial_index_values)
-    # Check for semi-positive definiteness (correlation matrix)
-    if not HypersphereDecomposition.is_positive_definite(config.correlation_matrix):
-        try:
-            config.correlation_matrix = HypersphereDecomposition(config.correlation_matrix).optimization()
-        except Exception as e:
-            raise ValueError("Error in the Decomposition") from e
-    # Cholesky decomposition of the correlation matrix
-    L = np.linalg.cholesky(config.correlation_matrix)
-    # Initialize paths
-    paths = np.zeros((config.nb_simulations, time_steps + 1, num_underlyings))
-    paths[:, 0, :] = config.initial_index_values
-
-    for t in range(1, time_steps + 1):
-        # Generate correlated random shocks
-        z = rng.standard_normal((config.nb_simulations, num_underlyings))
-        correlated_z = z @ L.T
-
-        for u in range(num_underlyings):
-            drift = (config.mu[u] - 0.5 * config.volatility[u] ** 2) * dt
-            diffusion = config.volatility[u] * np.sqrt(dt) * correlated_z[:, u]
-            paths[:, t, u] = paths[:, t - 1, u] * np.exp(drift + diffusion)
-
-    return paths
-
-
-# def simulate_multi_geometric_brownian_motion_robust(
-#         config: MultiSimulationConfig,
-#         rng: Optional[np.random.Generator] = None,
-#         use_qmc: bool = True,
-#         use_pca: bool = True,
-#         use_full_pca: bool = False,
-#         use_brownian_bridge: bool = False,
-#         rqmc_reps: int = 1,) -> np.ndarray:
-
-#     rng = rng or np.random.default_rng()
-#     dt = 1.0 / config.time_step_per_year
-#     time_steps = int(config.time_step_per_year * config.maturity)
-#     n_assets = int(len(config.initial_index_values))
-#     N = int(config.nb_simulations)
-
-#     # Convert market arrays
-#     S0 = np.asarray(config.initial_index_values, dtype=float).reshape((n_assets,))
-#     vol = np.asarray(config.volatility, dtype=float).reshape((n_assets,))
-#     mu = np.asarray(config.mu, dtype=float).reshape((n_assets,))
-
-#     # Validate correlation
-#     if not HypersphereDecomposition.is_positive_definite(config.correlation_matrix):
-#         config.correlation_matrix = HypersphereDecomposition(config.correlation_matrix).optimization()
-#     corr = np.asarray(config.correlation_matrix, dtype=float)
-
-#     # Precompute drift
-#     drift = (mu - 0.5 * (vol ** 2)) * dt
-
-#     total_dims = time_steps * n_assets
-
-#     # Helper to build paths given Brownian values at monitoring times W(t)
-#     # W shape: (N, time_steps, n_assets) containing Brownian value at each monitoring time
-#     def build_paths_from_W(W: np.ndarray) -> np.ndarray:
-#         # compute increments Delta W
-#         deltaW = np.empty_like(W)
-#         deltaW[:, 0, :] = W[:, 0, :]
-#         deltaW[:, 1:, :] = W[:, 1:, :] - W[:, :-1, :]
-#         # log increments: drift + vol * deltaW
-#         log_increments = drift.reshape((1, 1, n_assets)) + (vol.reshape((1, 1, n_assets)) * deltaW)
-#         cum = np.cumsum(log_increments, axis=1)
-#         paths = np.empty((N, time_steps + 1, n_assets), dtype=float)
-#         paths[:, 0, :] = S0.reshape((1, n_assets))
-#         paths[:, 1:, :] = S0.reshape((1, 1, n_assets)) * np.exp(cum)
-#         return paths
-
-#     # --------------------------
-#     # Pseudo-random branch
-#     # --------------------------
-#     if not use_qmc:
-#         # generate independent standard normal increments per asset per time
-#         Z = rng.standard_normal((N, time_steps, n_assets))
-#         # Apply asset correlation per time-step (L from corr)
-#         L = np.linalg.cholesky(corr)
-#         asset_normals = Z @ L.T
-#         # Convert normals (which represent N(0,1)) to Brownian increments
-#         # deltaW = sqrt(dt) * normals, but we'll directly treat these as deltaW
-#         # Note: In pseudo branch we follow the previous convention: normals*sqrt(dt)
-#         deltaW = asset_normals * np.sqrt(dt)
-#         # Build W(t) by cumulative sum
-#         W = np.cumsum(deltaW, axis=1)
-#         return build_paths_from_W(W)
-
-#     # --------------------------
-#     # QMC branch: handle Full PCA or per-time PCA (+ optional Brownian bridge)
-#     # --------------------------
-#     if use_full_pca and use_brownian_bridge:
-#         raise ValueError("use_brownian_bridge is not supported together with use_full_pca."
-#                          " Use per-time PCA + bridge or full PCA without bridge.")
-
-#     # Precompute times and time covariance matrix for Brownian motion
-#     times = np.arange(1, time_steps + 1, dtype=float) * dt
-#     C_time = np.minimum.outer(times, times)  # Cov(W(t_i), W(t_j)) = min(t_i,t_j)
-
-#     runs = []
-#     m = int(np.ceil(np.log2(max(1, N))))
-
-#     for rep in range(max(1, rqmc_reps)):
-#         sob = qmc.Sobol(d=total_dims, scramble=True)
-#         U = sob.random_base2(m)[:N, :]
-#         U = np.clip(U, 1e-12, 1.0 - 1e-12)
-#         Z_flat = norm.ppf(U)  # shape (N, total_dims)
-
-#         if use_full_pca:
-#             use_pca = False  # ignore use_pca if full_pca requested
-#             # Full PCA on time x asset covariance
-#             Cov_full = np.kron(C_time, corr)  # shape (T*M, T*M)
-#             vals, vecs = eigh(Cov_full)
-#             order = np.argsort(vals)[::-1]
-#             vals_ord = vals[order]
-#             vecs_ord = vecs[:, order]
-#             A_full = vecs_ord @ np.diag(np.sqrt(vals_ord))   # maps std normals -> W_flat
-#             # Map Z_flat -> W_flat (Brownian values at monitoring times concatenated)
-#             W_flat = Z_flat @ A_full.T   # shape (N, total_dims)
-#             W = W_flat.reshape((N, time_steps, n_assets))
-#             paths = build_paths_from_W(W)
-#             runs.append(paths)
-#             continue
-
-#         # else: per-time-step PCA (asset-wise PCA) possibly combined with Brownian bridge
-#         if use_pca:
-#             vals_a, vecs_a = eigh(corr)
-#             order_a = np.argsort(vals_a)[::-1]
-#             vals_a_ord = vals_a[order_a]
-#             vecs_a_ord = vecs_a[:, order_a]
-#             A_asset = vecs_a_ord @ np.diag(np.sqrt(vals_a_ord))  # (n_assets, n_assets)
-#             # interpret Z_flat as PC normals per (time, pc)
-#             Z_pc = Z_flat.reshape((N, time_steps, n_assets))  # (N, T, M) in time-major order
-
-#             if use_brownian_bridge:
-#                 # Build time-ordering for bridge (midpoint refinement)
-#                 time_order = brownian_bridge_ordering(time_steps)
-
-#                 # For each principal component p, apply Brownian bridge across time
-#                 W_pc = np.empty_like(Z_pc)
-#                 for p in range(n_assets):
-#                     Z_time = Z_pc[:, :, p]  # shape (N, T) in natural time order
-#                     # reorder columns to consumption (bridge) order
-#                     Z_ordered = Z_time[:, time_order]
-#                     # produce Brownian values at monitoring times from ordered normals
-#                     W_p = brownian_bridge_from_ordered_normals(Z_ordered, times, time_order)
-#                     W_pc[:, :, p] = W_p
-
-#                 # Map PC Brownian values to asset Brownian values via A_asset^T
-#                 # asset_W[n,t,j] = sum_p W_pc[n,t,p] * A_asset[j,p]
-#                 # Compute PC Brownian values to asset Brownian values via A_asset^T
-#                 W = W_pc @ A_asset.T
-#                 paths = build_paths_from_W(W)
-#                 runs.append(paths)
-
-#             else:
-#                 # No bridge: treat Z_pc as independent standard normals per time & PC, map to asset normals
-#                 # Correct mapping: asset_normals = Z_pc @ A_asset.T
-#                 asset_normals = Z_pc @ A_asset.T
-#                 # asset_normals are standard normals; convert to Brownian increments deltaW = sqrt(dt)*normals
-#                 deltaW = asset_normals * np.sqrt(dt)
-#                 W = np.cumsum(deltaW, axis=1)
-#                 paths = build_paths_from_W(W)
-#                 runs.append(paths)
-
-#         else:
-#             # No PCA: simple per-time Cholesky on asset corr, then Brownian bridge on each asset
-#             # Interpret Z_flat as normals in natural time order
-#             Z = Z_flat.reshape((N, time_steps, n_assets))
-#             if use_brownian_bridge:
-#                 time_order = brownian_bridge_ordering(time_steps)
-#                 # Apply bridge per asset (independent), then apply asset correlation via L per time
-#                 W_indep = np.empty_like(Z)
-#                 for j in range(n_assets):
-#                     Z_time = Z[:, :, j]
-#                     Z_ordered = Z_time[:, time_order]
-#                     W_j = brownian_bridge_from_ordered_normals(Z_ordered, times, time_order)
-#                     W_indep[:, :, j] = W_j
-#                 # Now correlate assets at each time: for each time t, mix vector W_indep[:,t,:] by L
-#                 L = np.linalg.cholesky(corr)
-#                 W = np.einsum('ntj,jk->ntk', W_indep, L.T)
-#                 paths = build_paths_from_W(W)
-#                 runs.append(paths)
-#             else:
-#                 L = np.linalg.cholesky(corr)
-#                 asset_normals = Z @ L.T
-#                 deltaW = asset_normals * np.sqrt(dt)
-#                 W = np.cumsum(deltaW, axis=1)
-#                 paths = build_paths_from_W(W)
-#                 runs.append(paths)
-
-#     # Return single run or stacked runs
-#     if len(runs) == 1:
-#         return runs[0]
-#     return np.stack(runs, axis=0)
-
-
-def brownian_bridge_ordering(n: int) -> np.ndarray:
-    """Return an ordering of indices [0..n-1] using midpoint refinement.
-    This order is used to consume QMC dimensions in the Brownian-bridge construction.
-    """
-    order = []
-
-    def visit(a, b):
-        if a > b:
-            return
-        m = (a + b) // 2
-        order.append(m)
-        visit(a, m - 1)
-        visit(m + 1, b)
-    visit(0, n - 1)
-    return np.array(order, dtype=int)
-
-
 def brownian_bridge_from_ordered_normals(Z_ordered: np.ndarray, times: np.ndarray,
                                          time_order: np.ndarray) -> np.ndarray:
     """
@@ -585,6 +348,72 @@ def _build_paths_from_brownian(W: np.ndarray, S0: np.ndarray, vol: np.ndarray,
     paths[:, 1:, :] = S0.reshape((1, 1, n_assets)) * np.exp(cum)
 
     return paths
+
+
+# Single-asset Geometric Brownian Motion simulation
+def simulate_geometric_brownian_motion(config: SingleSimulationConfig, rng: np.random.Generator | None = None) -> np.ndarray:
+    if rng is None:
+        rng = np.random.default_rng()
+    dt = 1 / config.time_step_per_year
+    time_steps = int(config.maturity * config.time_step_per_year)
+    paths = np.zeros((config.nb_simulations, time_steps + 1))
+    paths[:, 0] = config.initial_index_value
+    z = rng.standard_normal((time_steps, config.nb_simulations))
+    drift = (config.mu - 0.5 * config.volatility ** 2) * dt
+    diffusion = config.volatility * np.sqrt(dt) * z
+    log_returns = drift + diffusion
+    cum_log_returns = np.cumsum(log_returns, axis=0)
+    paths[:, 1:] = config.initial_index_value * np.exp(cum_log_returns.T)
+    return paths
+
+
+# Multi-asset Geometric Brownian Motion simulation
+def simulate_multi_geometric_brownian_motion(config: MultiSimulationConfig, rng: np.random.Generator | None = None) -> np.ndarray:
+    if rng is None:
+        rng = np.random.default_rng()
+    dt = 1 / config.time_step_per_year
+    time_steps = int(config.time_step_per_year * config.maturity)
+    num_underlyings = len(config.initial_index_values)
+    # Check for semi-positive definiteness (correlation matrix)
+    if not HypersphereDecomposition.is_positive_definite(config.correlation_matrix):
+        try:
+            config.correlation_matrix = HypersphereDecomposition(config.correlation_matrix).optimization()
+        except Exception as e:
+            raise ValueError("Error in the Decomposition") from e
+    # Cholesky decomposition of the correlation matrix
+    L = np.linalg.cholesky(config.correlation_matrix)
+    # Initialize paths
+    paths = np.zeros((config.nb_simulations, time_steps + 1, num_underlyings))
+    paths[:, 0, :] = config.initial_index_values
+
+    for t in range(1, time_steps + 1):
+        # Generate correlated random shocks
+        z = rng.standard_normal((config.nb_simulations, num_underlyings))
+        correlated_z = z @ L.T
+
+        for u in range(num_underlyings):
+            drift = (config.mu[u] - 0.5 * config.volatility[u] ** 2) * dt
+            diffusion = config.volatility[u] * np.sqrt(dt) * correlated_z[:, u]
+            paths[:, t, u] = paths[:, t - 1, u] * np.exp(drift + diffusion)
+
+    return paths
+
+
+def brownian_bridge_ordering(n: int) -> np.ndarray:
+    """Return an ordering of indices [0..n-1] using midpoint refinement.
+    This order is used to consume QMC dimensions in the Brownian-bridge construction.
+    """
+    order = []
+
+    def visit(a, b):
+        if a > b:
+            return
+        m = (a + b) // 2
+        order.append(m)
+        visit(a, m - 1)
+        visit(m + 1, b)
+    visit(0, n - 1)
+    return np.array(order, dtype=int)
 
 
 def simulate_multi_geometric_brownian_motion_robust(
