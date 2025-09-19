@@ -2,6 +2,7 @@ from scipy.linalg import eigh, eigvalsh
 from scipy.optimize import minimize
 from scipy.stats import norm, qmc
 import numpy as np
+from numba import njit, prange
 from dataclasses import dataclass
 from typing import Optional
 
@@ -367,38 +368,6 @@ def simulate_geometric_brownian_motion(config: SingleSimulationConfig, rng: np.r
     return paths
 
 
-# Multi-asset Geometric Brownian Motion simulation
-def simulate_multi_geometric_brownian_motion(config: MultiSimulationConfig, rng: np.random.Generator | None = None) -> np.ndarray:
-    if rng is None:
-        rng = np.random.default_rng()
-    dt = 1 / config.time_step_per_year
-    time_steps = int(config.time_step_per_year * config.maturity)
-    num_underlyings = len(config.initial_index_values)
-    # Check for semi-positive definiteness (correlation matrix)
-    if not HypersphereDecomposition.is_positive_definite(config.correlation_matrix):
-        try:
-            config.correlation_matrix = HypersphereDecomposition(config.correlation_matrix).optimization()
-        except Exception as e:
-            raise ValueError("Error in the Decomposition") from e
-    # Cholesky decomposition of the correlation matrix
-    L = np.linalg.cholesky(config.correlation_matrix)
-    # Initialize paths
-    paths = np.zeros((config.nb_simulations, time_steps + 1, num_underlyings))
-    paths[:, 0, :] = config.initial_index_values
-
-    for t in range(1, time_steps + 1):
-        # Generate correlated random shocks
-        z = rng.standard_normal((config.nb_simulations, num_underlyings))
-        correlated_z = z @ L.T
-
-        for u in range(num_underlyings):
-            drift = (config.mu[u] - 0.5 * config.volatility[u] ** 2) * dt
-            diffusion = config.volatility[u] * np.sqrt(dt) * correlated_z[:, u]
-            paths[:, t, u] = paths[:, t - 1, u] * np.exp(drift + diffusion)
-
-    return paths
-
-
 def brownian_bridge_ordering(n: int) -> np.ndarray:
     """Return an ordering of indices [0..n-1] using midpoint refinement.
     This order is used to consume QMC dimensions in the Brownian-bridge construction.
@@ -471,3 +440,158 @@ def simulate_multi_geometric_brownian_motion_robust(
         path_runs.append(paths)
 
     return path_runs[0] if len(path_runs) == 1 else np.stack(path_runs, axis=0)
+
+
+@njit(parallel=True, fastmath=True, cache=True)
+def simulate_multi_gbm_numba_cpu_blocked(
+    initial_values: np.ndarray,
+    mu: np.ndarray,
+    volatility: np.ndarray,
+    L_chol: np.ndarray,
+    dt: float,
+    time_steps: int,
+    nb_simulations: int,
+    random_numbers: np.ndarray,
+    block_size: int = 1024
+) -> np.ndarray:
+    """
+    Block-based multi-asset GBM simulation using Numba JIT compilation.
+    Processes simulations in blocks for better cache locality and memory efficiency.
+    """
+    num_assets = len(initial_values)
+    paths = np.zeros((nb_simulations, time_steps + 1, num_assets))
+
+    # Pre-compute drift terms
+    drift = np.empty(num_assets)
+    vol_sqrt_dt = np.empty(num_assets)
+    for j in range(num_assets):
+        drift[j] = (mu[j] - 0.5 * volatility[j] ** 2) * dt
+        vol_sqrt_dt[j] = volatility[j] * np.sqrt(dt)
+
+    # Calculate number of blocks
+    num_blocks = (nb_simulations + block_size - 1) // block_size
+
+    # Process simulations in blocks
+    for block_idx in prange(num_blocks):
+        start_sim = block_idx * block_size
+        end_sim = min(start_sim + block_size, nb_simulations)
+        actual_block_size = end_sim - start_sim
+
+        # Set initial values for this block
+        for i in range(start_sim, end_sim):
+            for j in range(num_assets):
+                paths[i, 0, j] = initial_values[j]
+
+        # Process each time step for this block
+        for t in range(1, time_steps + 1):
+            # Process all simulations in this block for current time step
+            for i in range(start_sim, end_sim):
+                # Apply Cholesky correlation
+                for j in range(num_assets):
+                    correlated_z = 0.0
+                    for k in range(num_assets):
+                        correlated_z += L_chol[j, k] * random_numbers[i, t-1, k]
+
+                    # Calculate log return and update price
+                    log_return = drift[j] + vol_sqrt_dt[j] * correlated_z
+                    paths[i, t, j] = paths[i, t-1, j] * np.exp(log_return)
+
+    return paths
+
+
+@njit(parallel=True, fastmath=True, cache=True)
+def simulate_multi_gbm_numba_cpu(
+    initial_values: np.ndarray,
+    mu: np.ndarray,
+    volatility: np.ndarray,
+    L_chol: np.ndarray,
+    dt: float,
+    time_steps: int,
+    nb_simulations: int,
+    random_numbers: np.ndarray
+) -> np.ndarray:
+    """
+    Standard implementation for comparison.
+    """
+    num_assets = len(initial_values)
+    paths = np.zeros((nb_simulations, time_steps + 1, num_assets))
+
+    # Set initial values in parallel
+    for i in prange(nb_simulations):
+        for j in range(num_assets):
+            paths[i, 0, j] = initial_values[j]
+
+    # Pre-compute drift terms
+    drift = np.empty(num_assets)
+    for j in range(num_assets):
+        drift[j] = (mu[j] - 0.5 * volatility[j] ** 2) * dt
+
+    sqrt_dt = np.sqrt(dt)
+
+    # Main simulation loop with parallel execution over simulations
+    for t in range(1, time_steps + 1):
+        for i in prange(nb_simulations):
+            # Apply Cholesky correlation
+            for j in range(num_assets):
+                correlated_z = 0.0
+                for k in range(num_assets):
+                    correlated_z += L_chol[j, k] * random_numbers[i, t-1, k]
+
+                # Calculate log return and update price
+                log_return = drift[j] + volatility[j] * sqrt_dt * correlated_z
+                paths[i, t, j] = paths[i, t-1, j] * np.exp(log_return)
+
+    return paths
+
+
+def simulate_multi_geometric_brownian_motion(
+    config: MultiSimulationConfig,
+    rng: Optional[np.random.Generator] = None,
+    method: str = "sim_blocked",
+    sim_block_size: int = 1024,
+) -> np.ndarray:
+    """
+    Optimized CPU simulation wrapper with multiple blocking strategies.
+
+    Parameters:
+    -----------
+    method : str
+        - "standard": No blocking
+        - "sim_blocked": Block by simulations only
+        - "time_blocked": Block by time steps only  
+        - "2d_blocked": Block by both simulations and time (recommended)
+    sim_block_size : int
+        Number of simulations per block
+    time_block_size : int
+        Number of time steps per block
+    """
+    if rng is None:
+        rng = np.random.default_rng()
+
+    dt = 1.0 / config.time_step_per_year
+    time_steps = int(config.time_step_per_year * config.maturity)
+    num_assets = len(config.initial_index_values)
+
+    # Validate and fix correlation matrix
+    if not HypersphereDecomposition.is_positive_definite(config.correlation_matrix):
+        config.correlation_matrix = HypersphereDecomposition(config.correlation_matrix).optimization()
+
+    # Pre-compute Cholesky decomposition
+    L = np.linalg.cholesky(config.correlation_matrix)
+
+    # Pre-generate all random numbers
+    random_numbers = rng.standard_normal((config.nb_simulations, time_steps, num_assets))
+
+    # Choose implementation based on method
+    if method == "standard":
+        return simulate_multi_gbm_numba_cpu(
+            config.initial_index_values, config.mu, config.volatility, L,
+            dt, time_steps, config.nb_simulations, random_numbers
+        )
+    elif method == "sim_blocked":
+        return simulate_multi_gbm_numba_cpu_blocked(
+            config.initial_index_values, config.mu, config.volatility, L,
+            dt, time_steps, config.nb_simulations, random_numbers, sim_block_size
+        )
+    else:
+        raise ValueError(f"Unknown method: {method}")

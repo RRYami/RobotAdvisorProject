@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import datetime as dt
 from dataclasses import dataclass
 from typing import Callable
-from monte_carlo import SingleSimulationConfig, simulate_geometric_brownian_motion, MultiSimulationConfig, simulate_multi_geometric_brownian_motion, simulate_multi_geometric_brownian_motion_robust
+from monte_carlo import SingleSimulationConfig, simulate_geometric_brownian_motion, MultiSimulationConfig, simulate_multi_geometric_brownian_motion
 
 plt.style.use(
     "https://github.com/dhaitz/matplotlib-stylesheets/raw/master/pitayasmoothie-dark.mplstyle"
@@ -62,7 +62,7 @@ def simulate_paths(config: SimulationConfig, rng: np.random.Generator | None = N
     if isinstance(config, SingleSimulationConfig):
         return simulate_geometric_brownian_motion(config=config, rng=rng)
     elif isinstance(config, MultiSimulationConfig):
-        return simulate_multi_geometric_brownian_motion_robust(config=config, rng=rng)
+        return simulate_multi_geometric_brownian_motion(config=config, rng=rng)
     else:
         raise ValueError("Unsupported config type for path simulation.")
 
