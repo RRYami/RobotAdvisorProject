@@ -1,11 +1,9 @@
 import numpy as np
 import pandas as pd
-from pandas import Timestamp
 import matplotlib.pyplot as plt
 import datetime as dt
 from dataclasses import dataclass
-from typing import Callable
-from monte_carlo import SingleSimulationConfig, simulate_geometric_brownian_motion, MultiSimulationConfig, simulate_multi_geometric_brownian_motion
+from Simulations.monte_carlo import SingleSimulationConfig, simulate_geometric_brownian_motion, MultiSimulationConfig, simulate_multi_geometric_brownian_motion
 
 plt.style.use(
     "https://github.com/dhaitz/matplotlib-stylesheets/raw/master/pitayasmoothie-dark.mplstyle"

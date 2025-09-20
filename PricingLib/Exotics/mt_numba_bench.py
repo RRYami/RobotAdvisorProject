@@ -2,7 +2,7 @@ import numpy as np
 from numba import njit, prange
 from typing import Optional
 import time
-from monte_carlo import MultiSimulationConfig, HypersphereDecomposition, SingleSimulationConfig
+from Simulations.monte_carlo import MultiSimulationConfig, HypersphereDecomposition, SingleSimulationConfig
 
 
 def simulate_geometric_brownian_motion(config: SingleSimulationConfig, rng: int | None = None) -> np.ndarray:
@@ -300,7 +300,7 @@ def benchmark_cpu_implementations():
         time_step_per_year=252
     )
 
-    from monte_carlo import simulate_multi_geometric_brownian_motion
+    from Simulations.monte_carlo import simulate_multi_geometric_brownian_motion
 
     implementations = [
         ("Original", lambda cfg, rng: simulate_multi_geometric_brownian_motion(cfg, rng)),

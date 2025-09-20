@@ -1,4 +1,4 @@
-from monte_carlo import SingleSimulationConfig, MultiSimulationConfig
+from Simulations.monte_carlo import SingleSimulationConfig, MultiSimulationConfig
 from exotics_functional import (
     OutperformanceCertificateParams,
     ReverseBarrierConvertibleCertificateParams,
