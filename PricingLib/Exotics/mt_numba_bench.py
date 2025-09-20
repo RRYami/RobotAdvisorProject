@@ -2,7 +2,82 @@ import numpy as np
 from numba import njit, prange
 from typing import Optional
 import time
-from monte_carlo import MultiSimulationConfig, HypersphereDecomposition
+from monte_carlo import MultiSimulationConfig, HypersphereDecomposition, SingleSimulationConfig
+
+
+def simulate_geometric_brownian_motion(config: SingleSimulationConfig, rng: int | None = None) -> np.ndarray:
+    if rng is not None:
+        np.random.seed(rng)
+    dt = 1 / config.time_step_per_year
+    time_steps = int(config.maturity * config.time_step_per_year)
+    paths = np.zeros((config.nb_simulations, time_steps + 1))
+    paths[:, 0] = config.initial_index_value
+    z = np.random.standard_normal((time_steps, config.nb_simulations))
+    drift = (config.mu - 0.5 * config.volatility ** 2) * dt
+    diffusion = config.volatility * np.sqrt(dt) * z
+    log_returns = drift + diffusion
+    print(log_returns)
+    cum_log_returns = np.cumsum(log_returns, axis=0)
+    paths[:, 1:] = config.initial_index_value * np.exp(cum_log_returns.T)
+    return paths
+
+
+@njit(fastmath=True, cache=True)
+def simulate_geometric_brownian_motion_numba_core(
+    nb_simulations: int,
+    time_steps: int,
+    initial_index_value: float,
+    mu: float,
+    volatility: float,
+    dt: float,
+    z: np.ndarray  # Pre-generated random numbers
+) -> np.ndarray:
+    # Pre-compute all constants
+    drift = (mu - 0.5 * volatility * volatility) * dt
+    vol_sqrt_dt = volatility * np.sqrt(dt)
+
+    # Allocate arrays
+    paths = np.empty((nb_simulations, time_steps + 1))
+    paths[:, 0] = initial_index_value
+
+    # Manual cumulative sum implementation
+    cum_log_returns = np.empty((time_steps, nb_simulations))
+
+    # Compute log returns and cumulative sum manually
+    for t in prange(time_steps):
+        log_returns = drift + vol_sqrt_dt * z[t, :]
+        if t == 0:
+            cum_log_returns[t, :] = log_returns
+        else:
+            cum_log_returns[t, :] = cum_log_returns[t-1, :] + log_returns
+
+    # Apply exponential and scale by initial value
+    paths[:, 1:] = initial_index_value * np.exp(cum_log_returns.T)
+
+    return paths
+
+
+# Wrapper that matches your exact interface
+def simulate_geometric_brownian_motion_numba_batch(config: SingleSimulationConfig, rng: Optional[int] = None) -> np.ndarray:
+    # Set seed exactly like your original function
+    if rng is not None:
+        np.random.seed(rng)
+
+    dt = 1 / config.time_step_per_year
+    time_steps = int(config.maturity * config.time_step_per_year)
+
+    # Generate random numbers exactly like your original function
+    z = np.random.standard_normal((time_steps, config.nb_simulations))
+
+    return simulate_geometric_brownian_motion_numba_core(
+        nb_simulations=config.nb_simulations,
+        time_steps=time_steps,
+        initial_index_value=config.initial_index_value,
+        mu=config.mu,
+        volatility=config.volatility,
+        dt=dt,
+        z=z
+    )
 
 
 @njit(parallel=True, fastmath=True, cache=True)
@@ -27,7 +102,7 @@ def simulate_multi_gbm_numba_cpu_blocked(
     # Pre-compute drift terms
     drift = np.empty(num_assets)
     vol_sqrt_dt = np.empty(num_assets)
-    for j in range(num_assets):
+    for j in prange(num_assets):
         drift[j] = (mu[j] - 0.5 * volatility[j] ** 2) * dt
         vol_sqrt_dt[j] = volatility[j] * np.sqrt(dt)
 
@@ -38,21 +113,20 @@ def simulate_multi_gbm_numba_cpu_blocked(
     for block_idx in prange(num_blocks):
         start_sim = block_idx * block_size
         end_sim = min(start_sim + block_size, nb_simulations)
-        actual_block_size = end_sim - start_sim
 
         # Set initial values for this block
-        for i in range(start_sim, end_sim):
-            for j in range(num_assets):
+        for i in prange(start_sim, end_sim):
+            for j in prange(num_assets):
                 paths[i, 0, j] = initial_values[j]
 
         # Process each time step for this block
-        for t in range(1, time_steps + 1):
+        for t in prange(1, time_steps + 1):
             # Process all simulations in this block for current time step
-            for i in range(start_sim, end_sim):
+            for i in prange(start_sim, end_sim):
                 # Apply Cholesky correlation
-                for j in range(num_assets):
+                for j in prange(num_assets):
                     correlated_z = 0.0
-                    for k in range(num_assets):
+                    for k in prange(num_assets):
                         correlated_z += L_chol[j, k] * random_numbers[i, t-1, k]
 
                     # Calculate log return and update price
@@ -121,7 +195,7 @@ def simulate_multi_geometric_brownian_motion_numba_cpu(
     method : str
         - "standard": No blocking
         - "sim_blocked": Block by simulations only
-        - "time_blocked": Block by time steps only  
+        - "time_blocked": Block by time steps only
         - "2d_blocked": Block by both simulations and time (recommended)
     sim_block_size : int
         Number of simulations per block
@@ -306,5 +380,86 @@ def benchmark_cpu_implementations():
                     print(f"{name:20s}: FAILED - {result.get('error', 'Unknown error')}")
 
 
+def benchmark_numba_single_asset():
+    """Benchmark single-asset GBM implementations."""
+
+    # Test configuration
+    config = SingleSimulationConfig(
+        initial_index_value=100.0,
+        mu=0.05,
+        volatility=0.2,
+        maturity=1.0,
+        nb_simulations=10000,
+        time_step_per_year=252
+    )
+
+    implementations = [
+        ("Original", lambda cfg: simulate_geometric_brownian_motion(cfg, rng=42)),
+        ("Numba Ultra Fast", lambda cfg: simulate_geometric_brownian_motion_numba_batch(cfg, rng=42)),
+    ]
+
+    results = {}
+
+    print(f"\nSingle-Asset Benchmark:")
+    print(f"Simulations: {config.nb_simulations:,}")
+    print(f"Time steps: {int(config.time_step_per_year * config.maturity)}")
+    print("-" * 70)
+
+    for name, func in implementations:
+        print(f"Running {name}...")
+
+        # Warm-up for JIT compilation
+        if "Numba" in name:
+            small_config = SingleSimulationConfig(
+                initial_index_value=100.0,
+                mu=0.05,
+                volatility=0.2,
+                maturity=0.1)
+            try:
+                _ = func(small_config)
+                print(f"  Warm-up completed")
+            except Exception as e:
+                print(f"  Warm-up failed: {e}")
+                continue
+
+        # Actual benchmark
+        start_time = time.perf_counter()
+        try:
+            paths = func(config)
+            end_time = time.perf_counter()
+
+            runtime = end_time - start_time
+            results[name] = {
+                'time': runtime,
+                'paths': paths,
+                'mean_final': np.mean(paths[:, -1], axis=0)
+            }
+            print(f"  Time: {runtime:.3f}s")
+            print(f"  Final prices (mean): {results[name]['mean_final']}")
+        except Exception as e:
+            print(f"  Error: {e}")
+            results[name] = {'time': float('inf'), 'error': str(e)}
+
+    # Performance comparison
+    print("\n" + "="*70)
+    print("PERFORMANCE COMPARISON")
+    print("="*70)
+    if results:
+        valid_results = {k: v for k, v in results.items()
+                         if 'time' in v and v['time'] != float('inf')}
+
+        if valid_results:
+            baseline_time = results['Original']['time'] if 'Original' in results else min(
+                r['time'] for r in valid_results.values())
+
+            for name, result in results.items():
+                if 'time' in result and result['time'] != float('inf'):
+                    speedup = baseline_time / result['time']
+                    print(f"{name:20s}: {result['time']:8.3f}s  (speedup: {speedup:6.2f}x)")
+                else:
+                    print(f"{name:20s}: FAILED - {result.get('error', 'Unknown error')}")
+
+
 if __name__ == "__main__":
     benchmark_cpu_implementations()
+    benchmark_numba_single_asset()

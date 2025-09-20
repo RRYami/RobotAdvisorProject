@@ -225,12 +225,13 @@ def _prepare_simulation_config(config: MultiSimulationConfig, rng: Optional[np.r
     return S0, vol, mu, corr, drift, dt, time_steps, n_assets, N
 
 
+@njit(fastmath=True, parallel=True, cache=True)
 def _generate_qmc_normals(N: int, total_dims: int, rqmc_reps: int = 1) -> list[np.ndarray]:
     """Generate QMC normal variates using Sobol sequences."""
     runs = []
     m = int(np.ceil(np.log2(max(1, N))))
 
-    for rep in range(max(1, rqmc_reps)):
+    for rep in prange(max(1, rqmc_reps)):
         sob = qmc.Sobol(d=total_dims, scramble=True)
         U = sob.random_base2(m)[:N, :]
         U = np.clip(U, 1e-12, 1.0 - 1e-12)
@@ -240,6 +241,7 @@ def _generate_qmc_normals(N: int, total_dims: int, rqmc_reps: int = 1) -> list[n
     return runs
 
 
+@njit(parallel=True, fastmath=True, cache=True)
 def _apply_full_pca(Z_flat: np.ndarray, corr: np.ndarray, time_steps: int,
                     n_assets: int, dt: float) -> np.ndarray:
     """Apply full PCA on time x asset covariance."""
@@ -264,6 +266,7 @@ def _apply_full_pca(Z_flat: np.ndarray, corr: np.ndarray, time_steps: int,
     return W
 
 
+@njit(parallel=True, fastmath=True, cache=True)
 def _apply_asset_pca(Z_flat: np.ndarray, corr: np.ndarray, time_steps: int,
                      n_assets: int) -> tuple[np.ndarray, np.ndarray]:
     """Apply PCA on asset correlation matrix."""
@@ -282,6 +285,7 @@ def _apply_asset_pca(Z_flat: np.ndarray, corr: np.ndarray, time_steps: int,
     return Z_pc, A_asset
 
 
+@njit(parallel=True, fastmath=True, cache=True)
 def _apply_brownian_bridge_to_pcs(Z_pc: np.ndarray, time_steps: int,
                                   dt: float, n_assets: int) -> np.ndarray:
     """Apply Brownian bridge to principal components."""
@@ -290,7 +294,7 @@ def _apply_brownian_bridge_to_pcs(Z_pc: np.ndarray, time_steps: int,
     time_order = brownian_bridge_ordering(time_steps)
 
     W_pc = np.empty_like(Z_pc)
-    for p in range(n_assets):
+    for p in prange(n_assets):
         Z_time = Z_pc[:, :, p]
         Z_ordered = Z_time[:, time_order]
         W_p = brownian_bridge_from_ordered_normals(Z_ordered, times, time_order)
@@ -464,7 +468,7 @@ def simulate_multi_gbm_numba_cpu_blocked(
     # Pre-compute drift terms
     drift = np.empty(num_assets)
     vol_sqrt_dt = np.empty(num_assets)
-    for j in range(num_assets):
+    for j in prange(num_assets):
         drift[j] = (mu[j] - 0.5 * volatility[j] ** 2) * dt
         vol_sqrt_dt[j] = volatility[j] * np.sqrt(dt)
 
@@ -478,18 +482,18 @@ def simulate_multi_gbm_numba_cpu_blocked(
         actual_block_size = end_sim - start_sim
 
         # Set initial values for this block
-        for i in range(start_sim, end_sim):
-            for j in range(num_assets):
+        for i in prange(start_sim, end_sim):
+            for j in prange(num_assets):
                 paths[i, 0, j] = initial_values[j]
 
         # Process each time step for this block
-        for t in range(1, time_steps + 1):
+        for t in prange(1, time_steps + 1):
             # Process all simulations in this block for current time step
-            for i in range(start_sim, end_sim):
+            for i in prange(start_sim, end_sim):
                 # Apply Cholesky correlation
-                for j in range(num_assets):
+                for j in prange(num_assets):
                     correlated_z = 0.0
-                    for k in range(num_assets):
+                    for k in prange(num_assets):
                         correlated_z += L_chol[j, k] * random_numbers[i, t-1, k]
 
                     # Calculate log return and update price
